@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRASH MODE</title>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<style>
+
+/* ================= GLOBAL ================= */
+
+:root{
+    --bg:#05050f;
+    --panel:#0b0b1f;
+    --blue:#2d8cff;
+    --green:#00ff88;
+    --red:#ff3b3b;
+    --gold:#ffd700;
+    --border:#1e1e3a;
+}
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    background:linear-gradient(180deg,#04040d,#0b0b25);
+    font-family:Inter,Arial,Helvetica,sans-serif;
+    color:white;
+    height:100vh;
+    overflow:hidden;
+}
+
+/* ================= LAYOUT ================= */
+
+.app{
+    max-width:430px;
+    margin:auto;
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    padding:10px;
+}
+
+.top-bar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:6px 2px;
+}
+
+.balance{
+    font-size:20px;
+    font-weight:900;
+    color:var(--gold);
+}
+
+/* ================= GAME ================= */
+
+.game{
+    background:var(--panel);
+    border-radius:20px;
+    border:1px solid var(--border);
+    height:280px;
+    margin-top:6px;
+    position:relative;
+    overflow:hidden;
+}
+
+.multiplier{
+    position:absolute;
+    top:12px;
+    width:100%;
+    text-align:center;
+    font-size:52px;
+    font-weight:900;
+    color:var(--green);
+    text-shadow:0 0 18px var(--green);
+    z-index:3;
+}
+
+.rocket{
+    position:absolute;
+    bottom:20px;
+    left:50%;
+    transform:translateX(-50%);
+    width:120px;
+    z-index:2;
+    transition:bottom .2s linear;
+}
+
+.explosion{
+    position:absolute;
+    inset:0;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    display:none;
+}
+
+.explosion img{
+    width:180px;
+}
+
+/* ================= CONTROLS ================= */
+
+.controls{
+    margin-top:12px;
+}
+
+.btn{
+    width:100%;
+    padding:18px;
+    border:none;
+    border-radius:16px;
+    font-size:18px;
+    font-weight:900;
+}
+
+.bet{
+    background:var(--blue);
+    color:white;
+}
+
+.cashout{
+    background:var(--green);
+    color:black;
+    display:none;
+}
+
+/* ================= BET LIST ================= */
+
+.players{
+    flex:1;
+    margin-top:12px;
+    background:var(--panel);
+    border-radius:16px;
+    border:1px solid var(--border);
+    padding:10px;
+    overflow:auto;
+}
+
+.player{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:8px 0;
+    border-bottom:1px solid var(--border);
+}
+
+.player:last-child{
+    border:none;
+}
+
+.left{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.avatar{
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    background:#222;
+}
+
+.nick{
+    font-weight:700;
+}
+
+.gift{
+    width:34px;
+    height:34px;
+    border-radius:6px;
+}
+
+.amount{
+    font-weight:800;
+    color:var(--gold);
+}
+
+/* ================= MODAL ================= */
+
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.88);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    z-index:1000;
+}
+
+.modal-box{
+    background:var(--panel);
+    border-radius:18px;
+    padding:20px;
+    width:90%;
+}
+
+.modal h3{
+    margin-bottom:12px;
+}
+
+.input{
+    width:100%;
+    padding:16px;
+    border-radius:12px;
+    border:none;
+    background:#05050f;
+    color:white;
+    font-size:18px;
+    margin-bottom:12px;
+}
+
+.quick{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:8px;
+    margin-bottom:12px;
+}
+
+.quick button{
+    padding:10px;
+    background:#111132;
+    color:white;
+    border:none;
+    border-radius:10px;
+    font-weight:700;
+}
+
+/* ================= SCROLL ================= */
+
+.players::-webkit-scrollbar{
+    width:5px;
+}
+
+.players::-webkit-scrollbar-thumb{
+    background:#2d8cff;
+    border-radius:10px;
+}
+
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<div class="top-bar">
+<div>CRASH</div>
+<div class="balance">⭐ <span id="balance">0</span></div>
+</div>
+
+<div class="game">
+
+<div class="multiplier" id="mult">1.00x</div>
+
+<img src="/static/gifs/crash.gif" id="rocket" class="rocket">
+
+<div class="explosion" id="boom">
+<img src="/static/gifs/boom.gif">
+</div>
+
+</div>
+
+<div class="controls">
+<button class="btn bet" id="betBtn">СДЕЛАТЬ СТАВКУ</button>
+<button class="btn cashout" id="cashoutBtn">ЗАБРАТЬ</button>
+</div>
+
+<div class="players" id="players"></div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+
+<div class="modal-box">
+
+<h3>Ставка звёздами</h3>
+
+<input class="input" id="amount" placeholder="Сумма">
+
+<div class="quick">
+<button onclick="setAmt(10)">10</button>
+<button onclick="setAmt(50)">50</button>
+<button onclick="setAmt(100)">100</button>
+<button onclick="setAmt(500)">500</button>
+</div>
+
+<button class="btn bet" onclick="sendBet()">Поставить</button>
+
+</div>
+</div>
+
+<script>
+
+const tg = Telegram.WebApp
+const user = tg.initDataUnsafe?.user || {id:1,first_name:"Player"}
+
+let flying=false
+let mult=1
+
+const rocket=document.getElementById("rocket")
+const boom=document.getElementById("boom")
+const multBox=document.getElementById("mult")
+
+const betBtn=document.getElementById("betBtn")
+const cashBtn=document.getElementById("cashoutBtn")
+
+betBtn.onclick=()=>openModal()
+cashBtn.onclick=()=>cashout()
+
+function openModal(){
+    document.getElementById("modal").style.display="flex"
+}
+
+function setAmt(v){
+    document.getElementById("amount").value=v
+}
+
+async function sendBet(){
+    let amount=parseInt(document.getElementById("amount").value)
+
+    if(!amount || amount <= 0) {
+        alert("Введите корректную сумму")
+        return
+    }
+
+    try {
+        let r = await fetch("/api/crash/bet",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({
+                user_id:user.id,
+                amount:amount
+            })
+        })
+        let data = await r.json()
+        
+        if(data.error) {
+            alert(data.error)
+            return
+        }
+
+        closeModal()
+        betBtn.style.display="none"
+        cashBtn.style.display="block"
+    } catch(e) {
+        alert("Ошибка при размещении ставки: " + e.message)
+    }
+}
+
+function closeModal(){
+    document.getElementById("modal").style.display="none"
+}
+
+async function cashout(){
+    try {
+        let r = await fetch("/api/crash/cashout",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({user_id:user.id})
+        })
+        let data = await r.json()
+        
+        if(data.error) {
+            alert(data.error)
+            return
+        }
+        
+        alert("🎉 Выигрыш: "+data.reward.name + "\n💰 Значение: " + data.reward.value)
+        reset()
+    } catch(e) {
+        alert("Ошибка при кешауте: " + e.message)
+    }
+}
+
+function reset(){
+    betBtn.style.display="block"
+    cashBtn.style.display="none"
+}
+
+async function updateGame(){
+    try {
+        let r = await fetch("/api/crash/status")
+        let d = await r.json()
+
+        if(d.status==="flying"){
+            flying=true
+            mult=parseFloat(d.multiplier)
+            multBox.innerText=mult.toFixed(2)+"x"
+            rocket.style.bottom = Math.min(20 + mult*14, 250)+"px"
+        }
+
+        if(d.status==="crashed" && flying){
+            flying=false
+            boom.style.display="flex"
+            setTimeout(()=>location.reload(),1500)
+        }
+    } catch(e) {
+        console.error("Ошибка обновления игры:", e)
+    }
+}
+
+async function updateBalance(){
+    try {
+        let r=await fetch("/api/crash/status")
+        let d=await r.json()
+        if(d.multiplier !== undefined){
+            // Получить баланс из локального хранилища или init data
+            document.getElementById("balance").innerText = tg.initDataUnsafe?.user?.id || "0"
+        }
+    } catch(e) {
+        console.error("Ошибка обновления баланса:", e)
+    }
+}
+
+setInterval(updateGame,400)
+setInterval(updateBalance,1500)
+
+</script>
+</body>
+</html>

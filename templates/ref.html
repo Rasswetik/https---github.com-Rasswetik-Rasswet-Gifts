@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Реферальная система - Rasswet Gifts</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 50%, #2d1a4a 100%);
+            min-height: 100vh;
+            color: white;
+            padding: 15px;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding-bottom: 80px;
+        }
+
+        /* Хедер */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #444;
+            border: 2px solid #666;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-name {
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .balance-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+            margin-left: 10px;
+        }
+
+        .balance-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            flex-shrink: 0;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            min-width: 70px;
+            justify-content: center;
+        }
+
+        .balance-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .balance-item span {
+            font-weight: 700;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .balance-item:first-child span {
+            color: #ffd700;
+        }
+
+        .balance-item:last-child span {
+            color: #4CAF50;
+        }
+
+        .back-button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 10px 15px;
+            color: white;
+            cursor: pointer;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            width: 100%;
+            justify-content: center;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Основной контент */
+        .section {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+            background: linear-gradient(135deg, #fff 0%, #a8b1ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Реферальная ссылка */
+        .referral-link-container {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 15px;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .referral-code {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ffd700;
+            margin: 10px 0;
+            word-break: break-all;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .referral-url {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 12px;
+            word-break: break-all;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .copy-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 20px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .copy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .copy-btn.copied {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        }
+
+        /* Статистика */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #ccc;
+        }
+
+        /* Бонус за рефералов */
+        .bonus-section {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 165, 0, 0.1) 100%);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            margin-bottom: 15px;
+        }
+
+        .bonus-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+
+        .bonus-description {
+            font-size: 14px;
+            color: #ccc;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .claim-bonus-btn {
+            background: linear-gradient(135deg, #ffd700 0%, #ffa500 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 15px 20px;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .claim-bonus-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .claim-bonus-btn:disabled {
+            background: #666;
+            color: #999;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Промокоды */
+        .promo-input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .promo-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 12px 15px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .promo-input::placeholder {
+            color: #888;
+        }
+
+        .activate-promo-btn {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 20px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .activate-promo-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.5);
+        }
+
+        .activate-promo-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+
+        /* Список рефералов */
+        .referrals-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .referral-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .referral-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(5px);
+        }
+
+        .referral-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #444;
+            border: 1px solid #666;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .referral-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .referral-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .referral-name {
+            font-weight: 600;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .referral-date {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #888;
+            padding: 40px 20px;
+            font-size: 14px;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+
+        /* Уведомления */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            font-weight: bold;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.5);
+        }
+
+        .notification.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+        }
+
+        .loading {
+            text-align: center;
+            color: #888;
+            padding: 40px;
+            font-size: 16px;
+        }
+
+        .error {
+            text-align: center;
+            color: #ff6b6b;
+            padding: 20px;
+            background: rgba(255, 107, 107, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 107, 107, 0.2);
+        }
+
+        /* Адаптивность */
+        @media (max-width: 380px) {
+            .balance-item {
+                padding: 6px 10px;
+                font-size: 13px;
+                min-width: 65px;
+            }
+            
+            .balance-icon {
+                width: 18px;
+                height: 18px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .promo-input-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Хедер -->
+        <div class="header">
+            <div class="user-info">
+                <div class="avatar">
+                    <img id="user-avatar" src="/static/img/default_avatar.png" alt="Avatar">
+                </div>
+                <div class="user-details">
+                    <div class="user-name" id="user-name">Загрузка...</div>
+                </div>
+            </div>
+            <div class="balance-container">
+                <div class="balance-item">
+                    <img src="/static/img/star.png" alt="Stars" class="balance-icon">
+                    <span id="balance-stars">0</span>
+                </div>
+                <div class="balance-item">
+                    <img src="/static/img/ticket.png" alt="Tickets" class="balance-icon">
+                    <span id="balance-tickets">0</span>
+                </div>
+            </div>
+        </div>
+
+        <button class="back-button" onclick="goBack()">
+            ← Назад
+        </button>
+
+        <!-- Реферальная система -->
+        <div class="section">
+            <div class="section-title">👥 Реферальная система</div>
+            
+            <div class="referral-link-container">
+                <div style="font-size: 14px; color: #ccc; margin-bottom: 5px;">Ваш реферальный код:</div>
+                <div class="referral-code" id="referral-code">Загрузка...</div>
+                <div class="referral-url" id="referral-url"></div>
+                <button class="copy-btn" onclick="copyReferralLink()" id="copy-btn">
+                    📋 Скопировать ссылку
+                </button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="referral-count">0</div>
+                    <div class="stat-label">Приглашено друзей</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="earned-tickets">0</div>
+                    <div class="stat-label">Заработано билетов</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="earned-stars">0</div>
+                    <div class="stat-label">Заработано звезд</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="total-earned">0</div>
+                    <div class="stat-label">Общий заработок</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Бонус за приглашение -->
+        <div class="bonus-section">
+            <div class="bonus-title">🎁 Бонус за приглашение друзей</div>
+            <div class="bonus-description">
+                Пригласите 3 друзей и получите бонус <strong>500 звезд</strong>! 
+                За каждого приглашенного друга вы получаете <strong>1 билет</strong>.
+            </div>
+            <button class="claim-bonus-btn" id="claim-bonus-btn" onclick="claimReferralBonus()">
+                Получить бонус 500 ⭐
+            </button>
+        </div>
+
+        <!-- Активация промокода -->
+        <div class="section">
+            <div class="section-title">🎟️ Активация промокода</div>
+            
+            <div class="promo-input-container">
+                <input type="text" class="promo-input" id="promo-input" placeholder="Введите промокод" maxlength="20">
+                <button class="activate-promo-btn" id="activate-promo-btn" onclick="activatePromoCode()">
+                    Активировать
+                </button>
+            </div>
+            
+            <div style="font-size: 12px; color: #888; text-align: center;">
+                Введите промокод для получения бонусных звезд или билетов
+            </div>
+        </div>
+
+        <!-- Список рефералов -->
+        <div class="section">
+            <div class="section-title">📊 Ваши рефералы</div>
+            
+            <div class="referrals-list" id="referrals-list">
+                <div class="loading">Загрузка списка рефералов...</div>
+            </div>
+        </div>
+
+        <!-- История наград -->
+        <div class="section">
+            <div class="section-title">💰 История наград</div>
+            
+            <div id="rewards-history">
+                <div class="loading">Загрузка истории...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Уведомление -->
+    <div class="notification" id="notification"></div>
+
+    <script>
+        let userData = null;
+        let referralData = null;
+
+        function goBack() {
+            window.location.href = '/';
+        }
+
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${isError ? 'error' : ''}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        async function initTelegramApp() {
+            console.log('🚀 Инициализация реферальной страницы...');
+
+            // Загружаем данные пользователя
+            await loadUserData();
+            
+            // Загружаем реферальные данные
+            await loadReferralData();
+
+            // Инициализируем обработчики событий
+            initEventHandlers();
+        }
+
+        async function loadUserData() {
+            try {
+                // Получаем данные пользователя из Telegram Web App
+                if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                    const tg = Telegram.WebApp;
+                    tg.ready();
+                    
+                    const tgUser = tg.initDataUnsafe.user;
+                    if (tgUser) {
+                        userData = {
+                            id: tgUser.id,
+                            first_name: tgUser.first_name,
+                            last_name: tgUser.last_name || '',
+                            username: tgUser.username || '',
+                            photo_url: tgUser.photo_url || '',
+                            balance_stars: 0,
+                            balance_tickets: 0
+                        };
+
+                        // Загружаем данные с сервера
+                        const response = await fetch(`/api/user/${userData.id}`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.success) {
+                                userData.balance_stars = data.user.balance_stars;
+                                userData.balance_tickets = data.user.balance_tickets;
+                            }
+                        }
+                    }
+                }
+
+                // Если нет данных из Telegram, используем заглушку
+                if (!userData) {
+                    userData = {
+                        id: 123456789,
+                        first_name: 'Гость',
+                        balance_stars: 0,
+                        balance_tickets: 0
+                    };
+                }
+
+                updateUI(userData);
+            } catch (error) {
+                console.error('❌ Ошибка загрузки данных:', error);
+            }
+        }
+
+        function updateUI(data) {
+            document.getElementById('user-name').textContent = data.first_name;
+            document.getElementById('balance-stars').textContent = data.balance_stars;
+            document.getElementById('balance-tickets').textContent = data.balance_tickets;
+
+            const avatarElement = document.getElementById('user-avatar');
+            if (data.photo_url) {
+                avatarElement.src = data.photo_url;
+            }
+        }
+
+        async function loadReferralData() {
+            try {
+                if (!userData || !userData.id) {
+                    throw new Error('Данные пользователя не загружены');
+                }
+
+                const response = await fetch(`/api/referral-info/${userData.id}`);
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки реферальных данных');
+                }
+
+                const data = await response.json();
+                if (data.success) {
+                    referralData = data;
+                    displayReferralData();
+                } else {
+                    throw new Error(data.error || 'Ошибка загрузки данных');
+                }
+            } catch (error) {
+                console.error('❌ Ошибка загрузки реферальных данных:', error);
+                showNotification('Ошибка загрузки данных', true);
+                
+                // Показываем пустые данные при ошибке
+                document.getElementById('referrals-list').innerHTML = `
+                    <div class="error">Ошибка загрузки списка рефералов</div>
+                `;
+                document.getElementById('rewards-history').innerHTML = `
+                    <div class="error">Ошибка загрузки истории наград</div>
+                `;
+            }
+        }
+
+        function displayReferralData() {
+            if (!referralData) return;
+
+            // Реферальный код
+            document.getElementById('referral-code').textContent = referralData.referral_code;
+            
+            // Реферальная ссылка
+            const referralUrl = `https://t.me/your_bot_name?start=ref_${referralData.referral_code}`;
+            document.getElementById('referral-url').textContent = referralUrl;
+
+            // Статистика
+            document.getElementById('referral-count').textContent = referralData.referral_count;
+            document.getElementById('earned-tickets').textContent = referralData.total_earned_tickets;
+            document.getElementById('earned-stars').textContent = referralData.total_earned_stars;
+            document.getElementById('total-earned').textContent = 
+                referralData.total_earned_stars + referralData.total_earned_tickets * 10;
+
+            // Кнопка бонуса
+            const bonusBtn = document.getElementById('claim-bonus-btn');
+            if (referralData.referral_bonus_claimed) {
+                bonusBtn.disabled = true;
+                bonusBtn.textContent = 'Бонус получен ✅';
+            } else if (referralData.referral_count >= 3) {
+                bonusBtn.disabled = false;
+                bonusBtn.textContent = 'Получить бонус 500 ⭐';
+            } else {
+                bonusBtn.disabled = true;
+                bonusBtn.textContent = `Нужно пригласить ${3 - referralData.referral_count} друзей`;
+            }
+
+            // Список рефералов
+            displayReferralsList();
+
+            // История наград
+            displayRewardsHistory();
+        }
+
+        function displayReferralsList() {
+            const referralsList = document.getElementById('referrals-list');
+            
+            if (!referralData.referrals || referralData.referrals.length === 0) {
+                referralsList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">👥</div>
+                        <div>У вас пока нет приглашенных друзей</div>
+                        <div style="font-size: 12px; margin-top: 10px; color: #666;">
+                            Приглашайте друзей по своей реферальной ссылке и получайте награды!
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            referralsList.innerHTML = referralData.referrals.map(referral => `
+                <div class="referral-item">
+                    <div class="referral-avatar">
+                        <img src="${referral.photo_url || '/static/img/default_avatar.png'}" alt="${referral.name}" onerror="this.src='/static/img/default_avatar.png'">
+                    </div>
+                    <div class="referral-info">
+                        <div class="referral-name">${referral.name}</div>
+                        <div class="referral-date">Присоединился: ${formatDate(referral.date)}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function displayRewardsHistory() {
+            const rewardsHistory = document.getElementById('rewards-history');
+            
+            if (!referralData.rewards_history || referralData.rewards_history.length === 0) {
+                rewardsHistory.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">💰</div>
+                        <div>История наград пуста</div>
+                    </div>
+                `;
+                return;
+            }
+
+            rewardsHistory.innerHTML = referralData.rewards_history.map(reward => `
+                <div class="referral-item">
+                    <div style="font-size: 24px; margin-right: 10px;">
+                        ${reward.type === 'stars' ? '⭐' : '🎫'}
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600;">+${reward.amount} ${reward.type === 'stars' ? 'звезд' : 'билетов'}</div>
+                        <div style="font-size: 12px; color: #888;">${reward.description}</div>
+                        <div style="font-size: 11px; color: #666;">${formatDate(reward.date)}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ru-RU', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function copyReferralLink() {
+            const referralUrl = document.getElementById('referral-url').textContent;
+            
+            navigator.clipboard.writeText(referralUrl).then(() => {
+                const copyBtn = document.getElementById('copy-btn');
+                copyBtn.textContent = '✅ Скопировано!';
+                copyBtn.classList.add('copied');
+                showNotification('Реферальная ссылка скопирована!');
+                
+                setTimeout(() => {
+                    copyBtn.textContent = '📋 Скопировать ссылку';
+                    copyBtn.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('Ошибка копирования:', err);
+                showNotification('Ошибка копирования', true);
+            });
+        }
+
+        async function claimReferralBonus() {
+            try {
+                const bonusBtn = document.getElementById('claim-bonus-btn');
+                bonusBtn.disabled = true;
+                bonusBtn.textContent = 'Загрузка...';
+
+                const response = await fetch('/api/claim-referral-bonus', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: userData.id
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification('🎉 Поздравляем! Вы получили бонус 500 звезд!');
+                    
+                    // Обновляем данные
+                    userData.balance_stars = result.new_balance.stars;
+                    userData.balance_tickets = result.new_balance.tickets;
+                    
+                    // Перезагружаем реферальные данные
+                    await loadReferralData();
+                    updateUI(userData);
+                    
+                } else {
+                    throw new Error(result.error);
+                }
+                
+            } catch (error) {
+                console.error('❌ Ошибка получения бонуса:', error);
+                showNotification(error.message || 'Ошибка получения бонуса', true);
+                
+                const bonusBtn = document.getElementById('claim-bonus-btn');
+                bonusBtn.disabled = false;
+                bonusBtn.textContent = 'Получить бонус 500 ⭐';
+            }
+        }
+
+        async function activatePromoCode() {
+            const promoInput = document.getElementById('promo-input');
+            const promoCode = promoInput.value.trim().toUpperCase();
+            
+            if (!promoCode) {
+                showNotification('Введите промокод', true);
+                return;
+            }
+
+            if (promoCode.length < 4) {
+                showNotification('Промокод слишком короткий', true);
+                return;
+            }
+
+            try {
+                const activateBtn = document.getElementById('activate-promo-btn');
+                activateBtn.disabled = true;
+                activateBtn.textContent = 'Активация...';
+
+                const response = await fetch('/api/use-promo-code', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: userData.id,
+                        promo_code: promoCode
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification(`🎉 Промокод активирован! Получено: ${result.rewards.stars}⭐ и ${result.rewards.tickets}🎫`);
+                    
+                    // Обновляем баланс
+                    userData.balance_stars = result.new_balance.stars;
+                    userData.balance_tickets = result.new_balance.tickets;
+                    
+                    // Обновляем UI
+                    updateUI(userData);
+                    promoInput.value = '';
+                    
+                } else {
+                    throw new Error(result.error);
+                }
+                
+            } catch (error) {
+                console.error('❌ Ошибка активации промокода:', error);
+                showNotification(error.message || 'Ошибка активации промокода', true);
+            } finally {
+                const activateBtn = document.getElementById('activate-promo-btn');
+                activateBtn.disabled = false;
+                activateBtn.textContent = 'Активировать';
+            }
+        }
+
+        function initEventHandlers() {
+            // Обработчик Enter для промокода
+            document.getElementById('promo-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    activatePromoCode();
+                }
+            });
+
+            // Автоматическая заглавная буква для промокода
+            document.getElementById('promo-input').addEventListener('input', function(e) {
+                this.value = this.value.toUpperCase();
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', initTelegramApp);
+    </script>
+</body>
+</html>

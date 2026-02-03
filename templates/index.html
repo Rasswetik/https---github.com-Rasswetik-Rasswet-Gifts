@@ -1,0 +1,1952 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rasswet Gifts - Открывай кейсы и получай подарки!</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* ========== СБРОС СТИЛЕЙ ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ========== ПЕРЕМЕННЫЕ ТЕМ ========== */
+        :root {
+            --theme-primary: #667eea;
+            --theme-secondary: #764ba2;
+            --theme-accent: #64ffda;
+            --theme-background: #000000;
+            --theme-surface: #1a1a2e;
+            --theme-surface-light: rgba(255, 255, 255, 0.05);
+            --theme-text: #ffffff;
+            --theme-text-secondary: rgba(255, 255, 255, 0.7);
+            --theme-border: rgba(255, 255, 255, 0.1);
+            --theme-glow: rgba(102, 126, 234, 0.3);
+            --theme-shadow: rgba(0, 0, 0, 0.3);
+            --theme-primary-rgb: 102, 126, 234;
+            --theme-secondary-rgb: 118, 75, 162;
+        }
+
+        /* ========== ОСНОВНЫЕ СТИЛИ ========== */
+        body {
+            position: relative;
+            min-height: 100vh;
+            overflow-x: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--theme-background);
+            color: var(--theme-text);
+            overflow-x: hidden;
+        }
+
+        .background-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+            overflow: hidden;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(118, 75, 162, 0.1) 0%, transparent 50%);
+            animation: gentlePulse 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes gentlePulse {
+            0% { opacity: 0.3; transform: scale(1); }
+            100% { opacity: 0.5; transform: scale(1.05); }
+        }
+
+        .content-container {
+            position: relative;
+            z-index: 1;
+            background: rgba(0, 0, 0, 0.3);
+            min-height: 100vh;
+            backdrop-filter: blur(5px);
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 15px;
+            padding-bottom: 80px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ========== ЭКРАН ЗАГРУЗКИ ========== */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--theme-background);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-screen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-content {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 60px;
+            position: relative;
+            z-index: 10000;
+        }
+
+        .loading-gif {
+            width: 140px;
+            height: 140px;
+            border-radius: 25px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-15px) rotate(2deg); }
+            75% { transform: translateY(5px) rotate(-2deg); }
+        }
+
+        .loading-progress {
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .loading-bar-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 
+                inset 0 2px 4px rgba(0, 0, 0, 0.3),
+                0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .loading-bar {
+            height: 100%;
+            background: linear-gradient(90deg, 
+                var(--theme-primary) 0%, 
+                var(--theme-secondary) 33%, 
+                var(--theme-accent) 66%, 
+                #00bcd4 100%);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-shadow: 0 0 20px var(--theme-glow);
+        }
+
+        .loading-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.6), 
+                transparent);
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(200%); }
+        }
+
+        /* ========== ОСНОВНОЕ ПРИЛОЖЕНИЕ ========== */
+        .main-app {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+        }
+
+        .main-app.show {
+            display: block;
+            opacity: 1;
+        }
+
+        /* ========== УВЕДОМЛЕНИЕ О ПОВЫШЕНИИ УРОВНЯ ========== */
+        .level-up-notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-secondary) 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            z-index: 10001;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+            animation: levelUpShow 0.5s ease-out;
+            max-width: 90%;
+            width: 350px;
+            backdrop-filter: blur(10px);
+            border: 3px solid var(--theme-accent);
+        }
+
+        .level-up-notification.hide {
+            animation: levelUpHide 0.5s ease-in forwards;
+        }
+
+        @keyframes levelUpShow {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            70% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        @keyframes levelUpHide {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+        }
+
+        .level-up-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #ffd700 0%, #ffa500 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .level-up-level {
+            font-size: 48px;
+            font-weight: bold;
+            color: var(--theme-accent);
+            margin: 10px 0;
+            text-shadow: 0 0 20px rgba(100, 255, 218, 0.5);
+        }
+
+        .level-up-rewards {
+            font-size: 16px;
+            margin: 15px 0;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .level-up-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .level-up-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        /* ========== ВЕРХНЯЯ ПАНЕЛЬ ========== */
+        .header {
+            background: linear-gradient(135deg, 
+                rgba(26, 26, 46, 0.95) 0%, 
+                rgba(22, 33, 62, 0.95) 100%);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 2px solid var(--theme-border);
+            box-shadow: 0 8px 32px var(--theme-shadow);
+            transition: all 0.5s ease;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .balance-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .balance-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: linear-gradient(135deg, 
+                rgba(var(--theme-primary-rgb), 0.2) 0%, 
+                rgba(var(--theme-secondary-rgb), 0.2) 100%);
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            border: 1px solid var(--theme-border);
+            transition: all 0.3s ease;
+        }
+
+        .balance-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px var(--theme-glow);
+        }
+
+        .balance-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .balance-stars {
+            color: #ffd700;
+        }
+
+        .balance-tickets {
+            color: var(--theme-accent);
+        }
+
+        .deposit-btn {
+            background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-secondary) 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 8px 12px;
+            color: var(--theme-text);
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px var(--theme-glow);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            white-space: nowrap;
+        }
+
+        .deposit-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px var(--theme-glow);
+        }
+
+        .home-btn {
+            background: linear-gradient(135deg, #64ffda 0%, #00bcd4 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 8px;
+            color: var(--theme-text);
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(100, 255, 218, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            border: 1px solid rgba(100, 255, 218, 0.3);
+        }
+
+        .home-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(100, 255, 218, 0.4);
+        }
+
+        .home-btn img {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Информация о пользователе */
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-secondary) 100%);
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-name {
+            color: var(--theme-text);
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .level-display {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .level-number {
+            color: var(--theme-accent);
+            font-weight: bold;
+        }
+
+        /* Прогресс уровня */
+        .level-section {
+            background: linear-gradient(135deg, 
+                rgba(var(--theme-primary-rgb), 0.1) 0%, 
+                rgba(var(--theme-secondary-rgb), 0.1) 100%);
+            border-radius: 15px;
+            padding: 15px;
+            margin-top: 10px;
+            border: 1px solid var(--theme-border);
+        }
+
+        .level-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+
+        .level-text {
+            color: var(--theme-accent);
+            font-weight: bold;
+        }
+
+        .exp-text {
+            color: var(--theme-text-secondary);
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--theme-accent) 0%, #00bcd4 100%);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 1s ease;
+            position: relative;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        /* ========== ЛЕНТА ПОБЕД ========== */
+        .wins-feed {
+            background: linear-gradient(135deg, 
+                rgba(var(--theme-primary-rgb), 0.1) 0%, 
+                rgba(var(--theme-secondary-rgb), 0.1) 100%);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid var(--theme-border);
+            backdrop-filter: blur(10px);
+        }
+
+        .wins-title {
+            font-size: 16px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .wins-title span {
+            font-size: 12px;
+            color: var(--theme-text-secondary);
+            font-weight: normal;
+        }
+
+        .wins-scroll {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .wins-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        .win-item {
+            flex: 0 0 auto;
+            width: 100px;
+            text-align: center;
+        }
+
+        .win-gift {
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            margin: 0 auto 8px;
+            border: 2px solid var(--theme-primary);
+            overflow: hidden;
+            background: var(--theme-surface-light);
+            position: relative;
+        }
+
+        .win-gift img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .win-user {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            font-size: 9px;
+            padding: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .win-name {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--theme-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 5px;
+        }
+
+        .win-value {
+            font-size: 10px;
+            color: #ffd700;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+        }
+
+        .win-value img {
+            width: 12px;
+            height: 12px;
+        }
+
+        /* ========== КАТЕГОРИИ КЕЙСОВ ========== */
+        .categories {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            text-align: center;
+            background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+        }
+
+        .categories-tabs {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .category-tab {
+            background: linear-gradient(135deg, 
+                rgba(var(--theme-primary-rgb), 0.2) 0%, 
+                rgba(var(--theme-secondary-rgb), 0.2) 100%);
+            border: 1px solid var(--theme-primary);
+            border-radius: 15px;
+            padding: 8px 15px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--theme-text-secondary);
+        }
+
+        .category-tab.active {
+            background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-secondary) 100%);
+            color: var(--theme-text);
+            border-color: var(--theme-primary);
+            box-shadow: 0 4px 15px var(--theme-glow);
+        }
+
+        .category-tab:hover {
+            background: rgba(var(--theme-primary-rgb), 0.4);
+            color: var(--theme-text);
+            transform: translateY(-2px);
+        }
+
+        /* ========== КЕЙСЫ (1 В РЯД) ========== */
+        .cases-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .cases-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .case-card {
+            background: linear-gradient(135deg, 
+                rgba(var(--theme-primary-rgb), 0.1) 0%, 
+                rgba(var(--theme-secondary-rgb), 0.1) 100%);
+            border-radius: 15px;
+            padding: 15px;
+            border: 2px solid var(--theme-border);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .case-card.free {
+            border: 2px solid #64ffda;
+            background: linear-gradient(135deg, 
+                rgba(100, 255, 218, 0.1) 0%, 
+                rgba(0, 188, 212, 0.1) 100%);
+        }
+
+        .case-card.limited {
+            border: 2px solid #ff9800;
+            background: linear-gradient(135deg, 
+                rgba(255, 152, 0, 0.1) 0%, 
+                rgba(255, 87, 34, 0.1) 100%);
+        }
+
+        .case-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--theme-primary);
+            box-shadow: 0 10px 30px var(--theme-glow);
+            background: linear-gradient(135deg, 
+                rgba(var(--theme-primary-rgb), 0.3) 0%, 
+                rgba(var(--theme-secondary-rgb), 0.3) 100%);
+        }
+
+        .case-card.free:hover {
+            border-color: #64ffda;
+            box-shadow: 0 10px 30px rgba(100, 255, 218, 0.3);
+        }
+
+        .case-card.limited:hover {
+            border-color: #ff9800;
+            box-shadow: 0 10px 30px rgba(255, 152, 0, 0.3);
+        }
+
+        .case-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .case-badge {
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--theme-text);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .case-badge.free {
+            background: linear-gradient(135deg, #64ffda 0%, #00bcd4 100%);
+        }
+
+        .case-badge.limited {
+            background: linear-gradient(135deg, #ff9800 0%, #ff5722 100%);
+        }
+
+        .case-badge.premium {
+            background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-secondary) 100%);
+        }
+
+        .case-limit {
+            font-size: 9px;
+            color: #ff9800;
+            font-weight: 600;
+            background: rgba(255, 152, 0, 0.1);
+            padding: 3px 6px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 152, 0, 0.2);
+            white-space: nowrap;
+        }
+
+        .case-image {
+            width: 100%;
+            height: 150px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid var(--theme-border);
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        .case-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .case-details {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .case-name {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            background: linear-gradient(135deg, var(--theme-text) 0%, var(--theme-accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            min-height: 40px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .case-cost {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--theme-accent);
+            margin-top: auto;
+            padding-top: 8px;
+            border-top: 1px solid var(--theme-border);
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .case-cost.free {
+            color: #64ffda;
+        }
+
+        .case-cost.limited {
+            color: #ff9800;
+        }
+
+        .case-cost img {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* ========== НИЖНЯЯ НАВИГАЦИЯ - УДАЛЕНА ========== */
+        .bottom-nav {
+            display: none;
+        }
+
+        /* ========== МОДАЛЬНОЕ ОКНО ПОПОЛНЕНИЯ ========== */
+        .deposit-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 9998;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .deposit-modal.active {
+            display: flex;
+        }
+
+        .deposit-content {
+            background: linear-gradient(135deg, var(--theme-surface) 0%, #16213e 100%);
+            border-radius: 25px;
+            width: 95%;
+            max-width: 500px;
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 3px solid var(--theme-primary);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            position: relative;
+            backdrop-filter: blur(20px);
+        }
+
+        .deposit-header {
+            padding: 25px 25px 15px;
+            text-align: center;
+            border-bottom: 1px solid var(--theme-border);
+        }
+
+        .deposit-title {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .deposit-subtitle {
+            color: var(--theme-text-secondary);
+            font-size: 14px;
+        }
+
+        .gifts-container {
+            padding: 20px;
+        }
+
+        .gifts-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--theme-accent);
+            text-align: center;
+        }
+
+        .gifts-scroll {
+            max-height: 400px;
+            overflow-y: auto;
+            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+        }
+
+        .gift-item {
+            background: linear-gradient(135deg, 
+                rgba(var(--theme-primary-rgb), 0.1) 0%, 
+                rgba(var(--theme-secondary-rgb), 0.1) 100%);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 2px solid var(--theme-border);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .gift-item:hover {
+            border-color: var(--theme-primary);
+            transform: translateX(5px);
+            box-shadow: 0 5px 20px var(--theme-glow);
+            background: linear-gradient(135deg, 
+                rgba(var(--theme-primary-rgb), 0.2) 0%, 
+                rgba(var(--theme-secondary-rgb), 0.2) 100%);
+        }
+
+        .gift-item.selected {
+            border-color: var(--theme-accent);
+            background: linear-gradient(135deg, 
+                rgba(100, 255, 218, 0.2) 0%, 
+                rgba(0, 188, 212, 0.2) 100%);
+            box-shadow: 0 0 20px rgba(100, 255, 218, 0.3);
+        }
+
+        .gift-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            overflow: hidden;
+            flex-shrink: 0;
+            border: 2px solid var(--theme-border);
+        }
+
+        .gift-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .gift-info {
+            flex: 1;
+        }
+
+        .gift-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--theme-text);
+            margin-bottom: 5px;
+        }
+
+        .gift-value {
+            font-size: 14px;
+            color: #ffd700;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .gift-value img {
+            width: 16px;
+            height: 16px;
+        }
+
+        .gift-price {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--theme-accent);
+            margin-left: auto;
+            padding-left: 15px;
+            border-left: 2px solid var(--theme-border);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .gift-price img {
+            width: 20px;
+            height: 20px;
+        }
+
+        .deposit-actions {
+            padding: 20px;
+            border-top: 1px solid var(--theme-border);
+            display: flex;
+            gap: 10px;
+        }
+
+        .confirm-deposit-btn {
+            flex: 2;
+            background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-secondary) 100%);
+            border: none;
+            border-radius: 15px;
+            padding: 15px;
+            color: var(--theme-text);
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .confirm-deposit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px var(--theme-glow);
+        }
+
+        .confirm-deposit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .confirm-deposit-btn img {
+            width: 20px;
+            height: 20px;
+        }
+
+        .cancel-deposit-btn {
+            flex: 1;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.1) 0%, 
+                rgba(255, 255, 255, 0.05) 100%);
+            border: 2px solid var(--theme-border);
+            border-radius: 15px;
+            padding: 15px;
+            color: var(--theme-text);
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .cancel-deposit-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .close-deposit {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, 
+                rgba(var(--theme-primary-rgb), 0.3) 0%, 
+                rgba(var(--theme-secondary-rgb), 0.3) 100%);
+            border: none;
+            color: var(--theme-text);
+            font-size: 24px;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            z-index: 9999;
+        }
+
+        .close-deposit:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(90deg);
+        }
+
+        /* ========== УВЕДОМЛЕНИЯ ========== */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-secondary) 100%);
+            color: var(--theme-text);
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            z-index: 10000;
+            animation: slideInRight 0.3s ease;
+            max-width: 300px;
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* ========== АДАПТИВНОСТЬ ========== */
+        @media (max-width: 380px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 12px;
+            }
+
+            .cases-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- АНИМИРОВАННЫЙ ФОН -->
+    <div class="background-animation"></div>
+
+    <!-- ЭКРАН ЗАГРУЗКИ -->
+    <div class="loading-screen" id="loading-screen">
+        <div class="loading-content">
+            <img src="/static/gifs/loading.gif" alt="Загрузка" class="loading-gif">
+            <div class="loading-progress">
+                <div class="loading-bar-container">
+                    <div class="loading-bar" id="loading-bar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- УВЕДОМЛЕНИЕ О ПОВЫШЕНИИ УРОВНЯ -->
+    <div class="level-up-notification" id="level-up-notification" style="display: none;">
+        <div class="level-up-title">🎉 УРОВЕНЬ ПОВЫШЕН!</div>
+        <div class="level-up-level" id="level-up-level">1</div>
+        <div class="level-up-rewards" id="level-up-rewards"></div>
+        <button class="level-up-close" onclick="closeLevelUpNotification()">Продолжить</button>
+    </div>
+
+    <!-- ОСНОВНОЕ ПРИЛОЖЕНИЕ -->
+    <div class="main-app" id="main-app">
+        <div class="content-container">
+            <div class="container">
+                <!-- ХЕДЕР -->
+                <div class="header">
+                    <!-- Верхняя строка: кнопка домой + баланс + кнопка пополнения -->
+                    <div class="header-top">
+                        <button class="home-btn" onclick="window.location.href='/lobby'" title="На главную">
+                            <img src="/static/img/exit.png" alt="Главная">
+                        </button>
+                        <div class="balance-container">
+                            <div class="balance-item">
+                                <img src="/static/img/star.png" alt="Stars" class="balance-icon">
+                                <span class="balance-amount balance-stars" id="balance-stars">0</span>
+                            </div>
+                            <div class="balance-item">
+                                <img src="/static/img/ticket.png" alt="Tickets" class="balance-icon">
+                                <span class="balance-amount balance-tickets" id="balance-tickets">0</span>
+                            </div>
+                            <button class="deposit-btn" onclick="openDepositModal()">
+                                <img src="/static/img/plus.png" alt="+" style="width: 14px; height: 14px;">
+                                Пополнить
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Информация о пользователе -->
+                    <div class="user-section">
+                        <div class="avatar">
+                            <img id="user-avatar" src="/static/img/default_avatar.png" alt="Avatar">
+                        </div>
+                        <div class="user-info">
+                            <div class="user-name" id="user-name">Загрузка...</div>
+                            <div class="level-display">Уровень: <span class="level-number" id="current-level">1</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Прогресс уровня -->
+                    <div class="level-section">
+                        <div class="level-info">
+                            <span class="level-text">Уровень <span id="current-level-text">1</span></span>
+                            <span class="exp-text" id="exp-text">0/100 XP</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="progress-bar"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ЛЕНТА ПОБЕД -->
+                <div class="wins-feed">
+                    <div class="wins-title">
+                        Последние победы
+                        <span id="wins-count">0</span>
+                    </div>
+                    <div class="wins-scroll" id="wins-feed">
+                        <!-- Победы будут загружены через JS -->
+                    </div>
+                </div>
+
+                <!-- КАТЕГОРИИ КЕЙСОВ -->
+                <div class="categories">
+                    <div class="section-title">Коллекции кейсов</div>
+                    <div class="categories-tabs" id="categories">
+                        <div class="category-tab active" data-category="all">Все</div>
+                        <div class="category-tab" data-category="free">Бесплатные</div>
+                        <div class="category-tab" data-category="limited">Лимит</div>
+                        <div class="category-tab" data-category="premium">Премиум</div>
+                    </div>
+                </div>
+
+                <!-- КЕЙСЫ (1 В РЯД) -->
+                <div class="cases-grid" id="cases-grid">
+                    <!-- Кейсы будут загружены через JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Нижняя навигация удалена по требованию -->
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО ПОПОЛНЕНИЯ -->
+    <div class="deposit-modal" id="deposit-modal">
+        <button class="close-deposit" onclick="closeDepositModal()">×</button>
+        <div class="deposit-content">
+            <div class="deposit-header">
+                <div class="deposit-title">Пополнение баланса</div>
+                <div class="deposit-subtitle">Выберите подарок для получения звезд</div>
+            </div>
+
+            <div class="gifts-container">
+                <div class="gifts-title">Доступные подарки из gifts.json</div>
+                <div class="gifts-scroll" id="gifts-list">
+                    <!-- Подарки загружаются из gifts.json -->
+                </div>
+            </div>
+
+            <div class="deposit-actions">
+                <button class="cancel-deposit-btn" onclick="closeDepositModal()">Отмена</button>
+                <button class="confirm-deposit-btn" id="confirm-deposit-btn" onclick="processDeposit()" disabled>
+                    <img src="/static/img/telegram.png" alt="Telegram">
+                    Отправить в ТГ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ==========
+        let userData = null;
+        let allCases = [];
+        let allGifts = [];
+        let currentUserLevel = 1;
+        let currentExperience = 0;
+        let currentCategory = 'all';
+        let selectedGift = null;
+        let lastLevel = 1;
+        let levelUpPending = false;
+
+        // Система уровней
+        const LEVEL_SYSTEM = [
+            { level: 1, expRequired: 0, rewardStars: 0, rewardTickets: 0 },
+            { level: 2, expRequired: 100, rewardStars: 10, rewardTickets: 1 },
+            { level: 3, expRequired: 300, rewardStars: 25, rewardTickets: 2 },
+            { level: 4, expRequired: 600, rewardStars: 50, rewardTickets: 3 },
+            { level: 5, expRequired: 1000, rewardStars: 100, rewardTickets: 5 },
+            { level: 6, expRequired: 1500, rewardStars: 150, rewardTickets: 7 },
+            { level: 7, expRequired: 2100, rewardStars: 200, rewardTickets: 10 },
+            { level: 8, expRequired: 2800, rewardStars: 250, rewardTickets: 12 },
+            { level: 9, expRequired: 3600, rewardStars: 300, rewardTickets: 15 },
+            { level: 10, expRequired: 4500, rewardStars: 400, rewardTickets: 20 },
+            { level: 11, expRequired: 5500, rewardStars: 500, rewardTickets: 25 },
+            { level: 12, expRequired: 6600, rewardStars: 600, rewardTickets: 30 },
+            { level: 13, expRequired: 7800, rewardStars: 700, rewardTickets: 35 },
+            { level: 14, expRequired: 9100, rewardStars: 800, rewardTickets: 40 },
+            { level: 15, expRequired: 10500, rewardStars: 900, rewardTickets: 45 },
+            { level: 16, expRequired: 12000, rewardStars: 1000, rewardTickets: 50 },
+            { level: 17, expRequired: 13600, rewardStars: 1100, rewardTickets: 55 },
+            { level: 18, expRequired: 15300, rewardStars: 1200, rewardTickets: 60 },
+            { level: 19, expRequired: 17100, rewardStars: 1300, rewardTickets: 65 },
+            { level: 20, expRequired: 19000, rewardStars: 1500, rewardTickets: 70 },
+            { level: 21, expRequired: 25000, rewardStars: 2000, rewardTickets: 75 }
+        ];
+
+        // ========== ЭКРАН ЗАГРУЗКИ ==========
+        async function initLoadingScreen() {
+            const loadingScreen = document.getElementById('loading-screen');
+            const loadingBar = document.getElementById('loading-bar');
+
+            loadingBar.style.width = '0%';
+            
+            // Простая последовательная загрузка с обработкой ошибок
+            try {
+                // 1. Инициализация Telegram (20%)
+                loadingBar.style.width = '20%';
+                await initTelegram();
+                
+                // 2. Загрузка данных пользователя (40%)
+                loadingBar.style.width = '40%';
+                await loadUserData();
+                
+                // 3. Параллельная загрузка всего остального (80%)
+                loadingBar.style.width = '60%';
+                await Promise.all([
+                    loadCases().catch(err => console.error('Ошибка загрузки кейсов:', err)),
+                    loadAllGifts().catch(err => console.error('Ошибка загрузки подарков:', err)),
+                    loadWinsFeed().catch(err => console.error('Ошибка загрузки побед:', err))
+                ]);
+                
+                // 4. Завершение (100%)
+                loadingBar.style.width = '100%';
+                await sleep(300);
+
+                // Скрываем экран загрузки
+                loadingScreen.classList.add('fade-out');
+
+                setTimeout(() => {
+                    document.getElementById('main-app').classList.add('show');
+                    console.log('✅ Приложение загружено!');
+                    
+                    // Проверяем повышение уровня
+                    if (levelUpPending) {
+                        setTimeout(showLevelUpNotification, 500);
+                    }
+                }, 500);
+                
+            } catch (error) {
+                console.error('❌ Критическая ошибка загрузки:', error);
+                // Даже при ошибке показываем основное приложение
+                loadingBar.style.width = '100%';
+                await sleep(500);
+                loadingScreen.classList.add('fade-out');
+                setTimeout(() => {
+                    document.getElementById('main-app').classList.add('show');
+                    showNotification('Ошибка загрузки некоторых данных', 'error');
+                }, 500);
+            }
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // ========== ИНИЦИАЛИЗАЦИЯ TELEGRAM ==========
+        async function initTelegram() {
+            if (typeof Telegram === 'undefined' || !Telegram.WebApp) {
+                console.log('📱 Telegram Web App не обнаружен, используем тестовый режим');
+                // Тестовые данные для разработки
+                userData = {
+                    id: 123456789,
+                    first_name: 'Тестовый пользователь',
+                    balance_stars: 1000,
+                    balance_tickets: 10,
+                    photo_url: '/static/img/default_avatar.png'
+                };
+                return false;
+            }
+
+            try {
+                const tg = Telegram.WebApp;
+                tg.ready();
+                tg.expand();
+
+                const tgUser = tg.initDataUnsafe.user;
+
+                if (tgUser) {
+                    userData = {
+                        id: tgUser.id,
+                        first_name: tgUser.first_name,
+                        last_name: tgUser.last_name || '',
+                        username: tgUser.username || '',
+                        photo_url: tgUser.photo_url || '/static/img/default_avatar.png',
+                        balance_stars: 0,
+                        balance_tickets: 0
+                    };
+                    console.log('✅ Telegram пользователь загружен:', userData.first_name);
+                    return true;
+                } else {
+                    console.log('⚠️ Пользователь Telegram не найден');
+                    return false;
+                }
+            } catch (error) {
+                console.error('❌ Ошибка Telegram:', error);
+                return false;
+            }
+        }
+
+        // ========== ЗАГРУЗКА ДАННЫХ ПОЛЬЗОВАТЕЛЯ ==========
+        async function loadUserData() {
+            try {
+                if (!userData || !userData.id) {
+                    console.log('⚠️ Нет данных пользователя');
+                    return;
+                }
+
+                const response = await fetch(`/api/user/${userData.id}`, {
+                    signal: AbortSignal.timeout(5000) // Таймаут 5 секунд
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        userData = { ...userData, ...data.user };
+                        
+                        // Сохраняем предыдущий уровень для проверки повышения
+                        lastLevel = data.user.current_level || 1;
+                        currentUserLevel = data.user.current_level || 1;
+                        currentExperience = data.user.experience || 0;
+                        
+                        console.log('✅ Данные пользователя загружены с сервера, уровень:', currentUserLevel);
+                        
+                        // Проверяем повышение уровня
+                        if (currentUserLevel > lastLevel) {
+                            levelUpPending = true;
+                        }
+                    } else {
+                        await registerUser();
+                    }
+                } else {
+                    await registerUser();
+                }
+
+                updateUserUI();
+                updateLevelDisplay();
+
+            } catch (error) {
+                console.error('❌ Ошибка загрузки данных пользователя:', error);
+                // Продолжаем с тестовыми данными
+                userData.balance_stars = 1000;
+                userData.balance_tickets = 10;
+                
+                updateUserUI();
+                updateLevelDisplay();
+            }
+        }
+
+        async function registerUser() {
+            try {
+                if (!userData || !userData.id) return;
+
+                const response = await fetch('/api/telegram-auth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    userData = { ...userData, ...data.user };
+                    console.log('✅ Пользователь зарегистрирован');
+                }
+            } catch (error) {
+                console.error('❌ Ошибка регистрации:', error);
+            }
+        }
+
+        function updateUserUI() {
+            if (!userData) return;
+
+            document.getElementById('user-name').textContent = userData.first_name || 'Гость';
+            document.getElementById('balance-stars').textContent = userData.balance_stars || 0;
+            document.getElementById('balance-tickets').textContent = userData.balance_tickets || 0;
+
+            const avatar = document.getElementById('user-avatar');
+            if (userData.photo_url) {
+                avatar.src = userData.photo_url;
+                avatar.onerror = function() {
+                    this.src = '/static/img/default_avatar.png';
+                };
+            }
+        }
+
+        // ========== СИСТЕМА УРОВНЕЙ ==========
+        function updateLevelDisplay() {
+            document.getElementById('current-level').textContent = currentUserLevel;
+            document.getElementById('current-level-text').textContent = currentUserLevel;
+
+            const currentLevelInfo = LEVEL_SYSTEM.find(level => level.level === currentUserLevel);
+            const nextLevelInfo = LEVEL_SYSTEM.find(level => level.level === currentUserLevel + 1);
+
+            if (nextLevelInfo) {
+                const progress = ((currentExperience - currentLevelInfo.expRequired) /
+                                (nextLevelInfo.expRequired - currentLevelInfo.expRequired)) * 100;
+
+                document.getElementById('exp-text').textContent =
+                    `${currentExperience}/${nextLevelInfo.expRequired} XP`;
+                document.getElementById('progress-bar').style.width = `${Math.min(progress, 100)}%`;
+            } else {
+                document.getElementById('exp-text').textContent = 'Максимальный уровень';
+                document.getElementById('progress-bar').style.width = '100%';
+            }
+        }
+
+        function showLevelUpNotification() {
+            if (currentUserLevel <= lastLevel) return;
+            
+            const levelInfo = LEVEL_SYSTEM.find(level => level.level === currentUserLevel);
+            const rewards = [];
+            
+            if (levelInfo.rewardStars > 0) {
+                rewards.push(`${levelInfo.rewardStars} звезд`);
+            }
+            if (levelInfo.rewardTickets > 0) {
+                rewards.push(`${levelInfo.rewardTickets} билетов`);
+            }
+            
+            document.getElementById('level-up-level').textContent = currentUserLevel;
+            document.getElementById('level-up-rewards').textContent = rewards.length > 0 
+                ? `Награда: ${rewards.join(' и ')}`
+                : 'Поздравляем с новым уровнем!';
+            
+            const notification = document.getElementById('level-up-notification');
+            notification.style.display = 'block';
+            
+            // Обновляем последний известный уровень
+            lastLevel = currentUserLevel;
+            levelUpPending = false;
+        }
+
+        function closeLevelUpNotification() {
+            const notification = document.getElementById('level-up-notification');
+            notification.classList.add('hide');
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+                notification.classList.remove('hide');
+            }, 500);
+        }
+
+        // ========== ЗАГРУЗКА КЕЙСОВ ==========
+        async function loadCases() {
+            try {
+                const response = await fetch('/api/cases', {
+                    signal: AbortSignal.timeout(10000) // Таймаут 10 секунд
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+
+                if (data.success) {
+                    allCases = data.cases || [];
+                    
+                    // Сортируем: бесплатные → лимитированные → остальные
+                    allCases.sort((a, b) => {
+                        if (a.cost === 0 && b.cost !== 0) return -1;
+                        if (a.cost !== 0 && b.cost === 0) return 1;
+                        if (a.limited && !b.limited) return -1;
+                        if (!a.limited && b.limited) return 1;
+                        return (a.display_order || 0) - (b.display_order || 0);
+                    });
+                    
+                    console.log(`✅ Загружено ${allCases.length} кейсов`);
+                    setupCategoryFilters();
+                    renderCases();
+                } else {
+                    console.error('❌ Ошибка в данных кейсов:', data.error);
+                    allCases = getDemoCases();
+                    renderCases();
+                }
+            } catch (error) {
+                console.error('❌ Ошибка загрузки кейсов:', error);
+                allCases = getDemoCases();
+                renderCases();
+                showNotification('Используются демо-кейсы', 'warning');
+            }
+        }
+
+        function getDemoCases() {
+            return [
+                {
+                    id: 1,
+                    name: 'Бесплатный кейс',
+                    image: '/static/img/default_case.png',
+                    cost: 0,
+                    cost_type: 'stars',
+                    description: 'Открывай каждые 24 часа',
+                    limited: false,
+                    display_order: 1
+                },
+                {
+                    id: 2,
+                    name: 'Стартовый кейс',
+                    image: '/static/img/default_case.png',
+                    cost: 100,
+                    cost_type: 'stars',
+                    description: 'Идеальный для начала',
+                    limited: false,
+                    display_order: 2
+                },
+                {
+                    id: 3,
+                    name: 'Лимитированный кейс',
+                    image: '/static/img/default_case.png',
+                    cost: 500,
+                    cost_type: 'stars',
+                    description: 'Ограниченное количество',
+                    limited: true,
+                    amount: 10,
+                    display_order: 3
+                }
+            ];
+        }
+
+        function renderCases() {
+            const casesGrid = document.getElementById('cases-grid');
+            const filteredCases = filterCasesByCategory(allCases, currentCategory);
+
+            if (filteredCases.length === 0) {
+                casesGrid.innerHTML = '<div class="case-card" style="text-align: center; padding: 40px 20px; color: var(--theme-text-secondary);">Нет доступных кейсов</div>';
+                return;
+            }
+
+            casesGrid.innerHTML = filteredCases.map(caseItem => {
+                const isFree = caseItem.cost === 0;
+                const isLimited = caseItem.limited;
+                const badgeClass = isFree ? 'free' : isLimited ? 'limited' : 'premium';
+                const cardClass = isFree ? 'free' : isLimited ? 'limited' : '';
+                const costClass = isFree ? 'free' : isLimited ? 'limited' : '';
+
+                return `
+                <div class="case-card ${cardClass}" onclick="openCase(${caseItem.id})">
+                    <div class="case-header">
+                        <div class="case-badge ${badgeClass}">
+                            ${isFree ? 'Бесплатно' : isLimited ? 'Лимит' : 'Премиум'}
+                        </div>
+                        ${isLimited && caseItem.amount ? 
+                            `<div class="case-limit">${caseItem.amount} шт</div>` : ''}
+                    </div>
+                    <div class="case-image">
+                        <img src="${caseItem.image}"
+                             alt="${caseItem.name}"
+                             onerror="this.src='/static/img/default_case.png'">
+                    </div>
+                    <div class="case-details">
+                        <div class="case-name">${caseItem.name}</div>
+                        <div class="case-cost ${costClass}">
+                            ${isFree ? 'БЕСПЛАТНО' : `
+                                <img src="/static/img/star.png" alt="Stars">
+                                ${caseItem.cost}
+                            `}
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function openCase(caseId) {
+            window.location.href = `/case/${caseId}`;
+        }
+
+        function setupCategoryFilters() {
+            const categoryTabs = document.querySelectorAll('.category-tab');
+            categoryTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    categoryTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    currentCategory = tab.dataset.category;
+                    renderCases();
+                });
+            });
+        }
+
+        function filterCasesByCategory(cases, category) {
+            if (category === 'all') return cases;
+            if (category === 'free') return cases.filter(c => c.cost === 0);
+            if (category === 'limited') return cases.filter(c => c.limited);
+            if (category === 'premium') return cases.filter(c => c.cost > 0 && !c.limited);
+            return cases;
+        }
+
+        // ========== ЗАГРУЗКА ПОДАРКОВ ИЗ gifts.json ==========
+        async function loadAllGifts() {
+            try {
+                const response = await fetch('/api/gifts', {
+                    signal: AbortSignal.timeout(5000)
+                });
+                
+                if (!response.ok) {
+                    throw new Error('API не отвечает');
+                }
+                
+                const data = await response.json();
+                
+                if (data.success && data.gifts) {
+                    allGifts = data.gifts;
+                } else if (Array.isArray(data)) {
+                    allGifts = data;
+                } else {
+                    throw new Error('Некорректный формат данных');
+                }
+                
+                // Сортируем по стоимости (от дорогих к дешевым)
+                allGifts.sort((a, b) => {
+                    const valueA = a.value || a.price || a.cost || 0;
+                    const valueB = b.value || b.price || b.cost || 0;
+                    return valueB - valueA;
+                });
+                
+                console.log(`✅ Загружено ${allGifts.length} подарков из gifts.json`);
+                
+            } catch (error) {
+                console.error('❌ Ошибка загрузки подарков:', error);
+                // Демо-подарки для отображения
+                allGifts = getDemoGifts();
+            }
+        }
+
+        function getDemoGifts() {
+            return [
+                { id: 1, name: "Plush Pepe", value: 5000, image: "/static/img/default_gift.png" },
+                { id: 2, name: "Golden Key", value: 3000, image: "/static/img/default_gift.png" },
+                { id: 3, name: "Silver Coin", value: 1000, image: "/static/img/default_gift.png" }
+            ];
+        }
+
+        function renderGiftsList() {
+            const giftsList = document.getElementById('gifts-list');
+            
+            if (!allGifts || allGifts.length === 0) {
+                giftsList.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--theme-text-secondary);">Подарки не найдены</div>';
+                return;
+            }
+            
+            giftsList.innerHTML = allGifts.map(gift => `
+                <div class="gift-item" data-gift-id="${gift.id}" onclick="selectGift(${gift.id})">
+                    <div class="gift-image">
+                        <img src="${gift.image || '/static/img/default_gift.png'}" 
+                             alt="${gift.name}"
+                             onerror="this.src='/static/img/default_gift.png'">
+                    </div>
+                    <div class="gift-info">
+                        <div class="gift-name">${gift.name || 'Подарок'}</div>
+                        <div class="gift-value">
+                            <img src="/static/img/star.png" alt="Звезды">
+                            ${gift.value || gift.price || gift.cost || '???'} звезд
+                        </div>
+                    </div>
+                    <div class="gift-price">
+                        <img src="/static/img/star.png" alt="Звезды">
+                        ${gift.value || gift.price || gift.cost || '???'}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ========== ЛЕНТА ПОБЕД ИЗ БД ==========
+        async function loadWinsFeed() {
+            try {
+                const response = await fetch('/api/recent-wins?limit=10', {
+                    signal: AbortSignal.timeout(5000)
+                });
+                
+                if (!response.ok) return;
+                
+                const result = await response.json();
+
+                if (result.success && result.wins && result.wins.length > 0) {
+                    renderWinsFeed(result.wins);
+                    document.getElementById('wins-count').textContent = `(${result.wins.length})`;
+                } else {
+                    renderDemoWins();
+                }
+            } catch (error) {
+                console.error('❌ Ошибка загрузки побед:', error);
+                renderDemoWins();
+            }
+        }
+
+        function renderWinsFeed(wins) {
+            const winsContainer = document.getElementById('wins-feed');
+            
+            winsContainer.innerHTML = wins.slice(0, 10).map(win => {
+                const user = win.user_name || 'Игрок';
+                const giftName = win.gift_name || 'Подарок';
+                const giftValue = win.gift_value || 0;
+                const giftImage = win.gift_image || '/static/img/default_gift.png';
+                
+                return `
+                <div class="win-item">
+                    <div class="win-gift">
+                        <img src="${giftImage}" 
+                             alt="${giftName}"
+                             onerror="this.src='/static/img/default_gift.png'">
+                        <div class="win-user">${user}</div>
+                    </div>
+                    <div class="win-name">${giftName}</div>
+                    <div class="win-value">
+                        <img src="/static/img/star.png" alt="Звезды">
+                        ${giftValue}
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function renderDemoWins() {
+            const demoWins = [
+                { user_name: "Алексей", gift_name: "Телефон", gift_value: 5000, gift_image: "/static/img/default_gift.png" },
+                { user_name: "Мария", gift_name: "Наушники", gift_value: 2000, gift_image: "/static/img/default_gift.png" },
+                { user_name: "Иван", gift_name: "Часы", gift_value: 3000, gift_image: "/static/img/default_gift.png" },
+                { user_name: "Ольга", gift_name: "Планшет", gift_value: 8000, gift_image: "/static/img/default_gift.png" },
+                { user_name: "Дмитрий", gift_name: "Ноутбук", gift_value: 15000, gift_image: "/static/img/default_gift.png" }
+            ];
+            
+            renderWinsFeed(demoWins);
+            document.getElementById('wins-count').textContent = `(${demoWins.length})`;
+        }
+
+        // ========== ПОПОЛНЕНИЕ БАЛАНСА ==========
+        function openDepositModal() {
+            const modal = document.getElementById('deposit-modal');
+            modal.classList.add('active');
+            
+            renderGiftsList();
+            
+            selectedGift = null;
+            document.getElementById('confirm-deposit-btn').disabled = true;
+            
+            document.querySelectorAll('.gift-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+        }
+
+        function closeDepositModal() {
+            document.getElementById('deposit-modal').classList.remove('active');
+            selectedGift = null;
+        }
+
+        function selectGift(giftId) {
+            const gift = allGifts.find(g => g.id === giftId);
+            if (!gift) return;
+            
+            document.querySelectorAll('.gift-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            const selectedItem = document.querySelector(`.gift-item[data-gift-id="${giftId}"]`);
+            if (selectedItem) {
+                selectedItem.classList.add('selected');
+            }
+            
+            selectedGift = gift;
+            document.getElementById('confirm-deposit-btn').disabled = false;
+        }
+
+        async function processDeposit() {
+            if (!selectedGift) {
+                showNotification('Выберите подарок', 'error');
+                return;
+            }
+            
+            if (!userData || !userData.id) {
+                showNotification('Пользователь не найден', 'error');
+                return;
+            }
+            
+            try {
+                showNotification('Создание заявки на пополнение...', 'info');
+                
+                // Создаем заявку на пополнение
+                const response = await fetch('/api/create-stars-payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: userData.id,
+                        amount: selectedGift.value || selectedGift.price || selectedGift.cost || 1000
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Открываем бота в Telegram
+                    if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                        Telegram.WebApp.openTelegramLink(`https://t.me/RasswetGiftsBot?start=deposit_${result.deposit_id}`);
+                    } else {
+                        // Если нет Telegram Web App, показываем ссылку
+                        window.open(`https://t.me/RasswetGiftsBot?start=deposit_${result.deposit_id}`, '_blank');
+                    }
+                    
+                    showNotification('Перейдите в бота для оплаты', 'success');
+                    closeDepositModal();
+                    
+                    // Можно добавить проверку статуса платежа
+                    checkDepositStatus(result.deposit_id);
+                    
+                } else {
+                    showNotification(result.error || 'Ошибка создания заявки', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Ошибка пополнения:', error);
+                showNotification('Ошибка соединения', 'error');
+            }
+        }
+
+        async function checkDepositStatus(depositId) {
+            // Проверяем статус платежа каждые 5 секунд
+            const checkInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/api/check-stars-payment/${depositId}?user_id=${userData.id}`);
+                    const result = await response.json();
+                    
+                    if (result.success && result.status === 'completed') {
+                        clearInterval(checkInterval);
+                        showNotification('Баланс пополнен!', 'success');
+                        
+                        // Обновляем баланс
+                        await loadUserData();
+                    }
+                } catch (error) {
+                    console.error('Ошибка проверки статуса:', error);
+                }
+            }, 5000);
+            
+            // Останавливаем проверку через 5 минут
+            setTimeout(() => clearInterval(checkInterval), 5 * 60 * 1000);
+        }
+
+        // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            
+            if (type === 'error') {
+                notification.style.background = 'linear-gradient(135deg, #ff6b6b 0%, #ff4757 100%)';
+            } else if (type === 'warning') {
+                notification.style.background = 'linear-gradient(135deg, #ffa500 0%, #ff8c00 100%)';
+            } else if (type === 'info') {
+                notification.style.background = 'linear-gradient(135deg, #1e90ff 0%, #3742fa 100%)';
+            }
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // ========== ИНИЦИАЛИЗАЦИЯ ==========
+        document.addEventListener('DOMContentLoaded', () => {
+            initLoadingScreen();
+        });
+
+        // Демо-функции для тестирования
+        window.demoAddStars = function(amount = 1000) {
+            if (userData) {
+                userData.balance_stars += amount;
+                updateUserUI();
+                showNotification(`Добавлено ${amount} звезд`, 'success');
+            }
+        };
+
+        window.demoAddLevel = function() {
+            if (currentUserLevel < 21) {
+                currentUserLevel++;
+                currentExperience = LEVEL_SYSTEM.find(l => l.level === currentUserLevel).expRequired;
+                updateLevelDisplay();
+                showLevelUpNotification();
+            }
+        };
+    </script>
+</body>
+</html>

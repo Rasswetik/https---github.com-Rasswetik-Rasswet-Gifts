@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RasswetGifts</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="user-info">
+                <img src="{{ user[5] if user else '/static/avatars/default.png' }}" alt="Avatar" class="user-avatar">
+                <div class="user-name">{{ user[3] if user else 'User' }}</div>
+            </div>
+            <h1>RASSWET GIFTS</h1>
+            <div class="currency">
+                <span class="stars">⭐ {{ balance.stars if balance else 0 }}</span>
+                <span class="tickets">🎫 {{ balance.tickets if balance else 0 }}</span>
+            </div>
+        </header>
+        
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
+        
+        <nav class="bottom-nav">
+            <a href="{{ url_for('index') }}" class="nav-item">
+                <img src="{{ url_for('static', filename='images/conc.png') }}" alt="Конкурсы">
+                <span>Конкурсы</span>
+            </a>
+            <a href="{{ url_for('cases') }}" class="nav-item">
+                <img src="{{ url_for('static', filename='images/case.png') }}" alt="Кейсы">
+                <span>Кейсы</span>
+            </a>
+            <a href="#" class="nav-item">
+                <img src="{{ url_for('static', filename='images/upg.png') }}" alt="Апгрейд">
+                <span>Апгрейд</span>
+            </a>
+            <a href="#" class="nav-item">
+                <img src="{{ url_for('static', filename='images/ref.png') }}" alt="Друзья">
+                <span>Друзья</span>
+            </a>
+            <a href="{{ url_for('profile') }}" class="nav-item">
+                <img src="{{ url_for('static', filename='images/prof.png') }}" alt="Профиль">
+                <span>Профиль</span>
+            </a>
+        </nav>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
